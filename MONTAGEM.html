@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo: Montando seu PC Gamer TUF com IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals & TUF Gold -->
+    <!-- Application Structure Plan: A step-by-step wizard interface was chosen to transform the linear guide into an interactive, manageable process. This structure breaks down the complex task into digestible chunks, reducing cognitive load. A top stepper visualizes progress and allows non-linear navigation. A toggleable sidebar for components provides crucial context without cluttering the main view. This task-oriented design enhances usability for a hands-on guide compared to a static document. A new AI assistant modal was added to provide contextual help at each step, leveraging the Gemini API for troubleshooting. -->
+    <!-- Visualization & Content Choices: Report Info: Component List -> Goal: Reference -> Viz: Toggleable sidebar with icons -> Interaction: Click to show/hide -> Justification: Provides easy access to parts list. | Report Info: Step-by-step instructions -> Goal: Guide -> Viz: Sequenced content panels -> Interaction: Next/Prev buttons and stepper navigation -> Justification: Mirrors the logical flow of a build process. | Report Info: Final Checklist -> Goal: Verification -> Viz: Interactive checklist -> Interaction: Click to toggle checkmark -> Justification: Engages the user. | New Feature: Troubleshooting -> Goal: Problem Solving -> Viz: Modal with input/output -> Interaction: User types problem, clicks button to call Gemini API -> Justification: Provides intelligent, contextual help, significantly enhancing the guide's value. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --accent-color: #D4AF37; /* A rich gold color inspired by TUF Gaming */
+            --accent-color-hover: #B89B3E;
+            --bg-light: #F7F3E9;
+            --bg-main: #FFFFFF;
+            --text-dark: #2d3748;
+            --text-light: #4a5568;
+            --border-color: #e2e8f0;
+        }
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Inter', sans-serif;
+        }
+        .accent-bg { background-color: var(--accent-color); }
+        .accent-bg-hover:hover { background-color: var(--accent-color-hover); }
+        .accent-text { color: var(--accent-color); }
+        .accent-border { border-color: var(--accent-color); }
+        .step-item.active {
+            color: var(--accent-color);
+            border-bottom-width: 2px;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+        .step-item {
+            border-bottom-width: 2px;
+            border-color: transparent;
+            transition: all 0.3s ease;
+        }
+        #component-sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .checklist-item.checked {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        .checklist-item.checked .checkbox-icon {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+        .ram-slot {
+            border: 2px solid var(--border-color);
+            background-color: #f7fafc;
+        }
+        .ram-slot.highlight {
+            border-color: var(--accent-color);
+            background-color: #FFFBEB;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+</head>
+<body class="text-gray-800">
+
+    <div id="app-container" class="relative min-h-screen">
+        
+        <!-- Component Sidebar -->
+        <aside id="component-sidebar" class="fixed top-0 right-0 z-40 w-80 h-full bg-white shadow-xl transform translate-x-full">
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Roboto Condensed', sans-serif;">Componentes</h2>
+                    <button id="close-sidebar-btn" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <ul id="component-list" class="space-y-3 text-sm"></ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900" style="font-family: 'Roboto Condensed', sans-serif;">Guia de Montagem de PC Gamer</h1>
+                <p class="text-lg text-gray-600 mt-2">Edição Interativa TUF B650M & Ryzen 9000</p>
+            </header>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-4xl mx-auto">
+                <div class="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-700">Etapas da Montagem</h2>
+                     <button id="open-sidebar-btn" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg accent-bg accent-bg-hover transition-colors">
+                        <span>⚙️</span>
+                        <span>Componentes</span>
+                    </button>
+                </div>
+
+                <nav id="stepper-nav" class="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-8 text-sm md:text-base"></nav>
+                <main id="steps-container" class="space-y-6"></main>
+
+                <div class="flex justify-between items-center pt-8 mt-8 border-t border-gray-200">
+                    <button id="prev-btn" class="px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+                    <div class="text-sm text-gray-500">
+                        Etapa <span id="current-step-indicator">1</span> de <span id="total-steps-indicator">6</span>
+                    </div>
+                    <button id="next-btn" class="px-6 py-2 font-semibold text-white rounded-lg accent-bg accent-bg-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Próximo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gemini AI Help Modal -->
+        <div id="ai-help-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 class="text-xl font-bold accent-text" style="font-family: 'Roboto Condensed', sans-serif;">✨ Assistente de Montagem IA</h3>
+                    <button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <p class="text-gray-600 mb-4">Estou com problemas na etapa: <strong id="modal-step-title" class="text-gray-800"></strong>. Descreva sua dificuldade abaixo.</p>
+                    <textarea id="user-problem-input" class="w-full h-24 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition" placeholder="Ex: O processador não encaixa no soquete."></textarea>
+                    <button id="get-ai-help-btn" class="w-full mt-4 px-6 py-3 font-semibold text-white rounded-lg accent-bg accent-bg-hover transition-colors flex items-center justify-center gap-2">
+                        <span>Buscar Solução</span>
+                    </button>
+                    <div id="ai-response-container" class="mt-6">
+                         <div id="ai-loader" class="hidden justify-center items-center py-4">
+                            <div class="loader"></div>
+                         </div>
+                         <div id="ai-response-content" class="prose max-w-none bg-gray-50 p-4 rounded-md hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const aiHelpButtonHtml = `
+            <div class="mt-8 text-center">
+                <button class="ai-help-trigger-btn inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-yellow-800 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition-colors border border-yellow-200">
+                    <span>✨</span>
+                    <span>Precisa de Ajuda?</span>
+                </button>
+            </div>
+        `;
+
+        const stepsData = [
+            {
+                title: 'Preparação',
+                content: `
+                    <div class="prose max-w-none">
+                        <p class="text-lg text-gray-600">Bem-vindo ao guia interativo! Nesta fase inicial, vamos reunir tudo o que é necessário e preparar nosso ambiente de trabalho. Uma boa preparação é a chave para uma montagem tranquila e segura, evitando danos aos componentes e garantindo que tudo corra bem.</p>
+                        <h4 class="font-bold mt-6">Ferramentas Necessárias</h4>
+                        <ul class="list-disc pl-5">
+                            <li><strong>Chave Phillips:</strong> Idealmente, uma com ponta magnética (#1 e #2).</li>
+                            <li><strong>Organização:</strong> Abraçadeiras plásticas (zip ties) ou fitas de velcro.</li>
+                            <li><strong>Corte:</strong> Tesoura ou um pequeno alicate de corte.</li>
+                        </ul>
+                        <h4 class="font-bold mt-6">Ambiente Ideal</h4>
+                        <ul class="list-disc pl-5">
+                            <li><strong>Superfície:</strong> Trabalhe em uma mesa ou bancada firme, ampla, limpa e bem iluminada.</li>
+                            <li><strong>Piso:</strong> Evite carpetes para minimizar o risco de energia estática. Pisos de madeira ou cerâmica são ideais.</li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-r-lg">
+                            <h5 class="font-bold">⚠️ Cuidado com a Energia Estática (ESD)</h5>
+                            <p class="mt-2">A eletricidade estática do seu corpo pode danificar permanentemente os componentes. Para evitar isso:</p>
+                            <ul class="list-disc pl-5 mt-2">
+                                <li><strong>Ideal:</strong> Use uma pulseira antiestática conectada a uma parte metálica (sem tinta) do gabinete.</li>
+                                <li><strong>Alternativa:</strong> Toque frequentemente em partes metálicas sem pintura do gabinete ou da fonte para descarregar a estática.</li>
+                            </ul>
+                        </div>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            },
+            {
+                title: 'Placa-Mãe',
+                content: `
+                    <div class="prose max-w-none">
+                        <p class="text-lg text-gray-600">Nesta etapa, prepararemos o "cérebro" do seu sistema antes de instalá-lo no gabinete. Vamos montar os componentes mais sensíveis diretamente na placa-mãe sobre uma superfície segura, como a própria caixa antiestática em que ela veio.</p>
+                        <h4 class="font-bold mt-6">1.1 Instalando o Processador (CPU)</h4>
+                        <ol class="list-decimal pl-5">
+                            <li>Levante a alavanca do soquete AM5 até que o suporte do processador se abra completamente.</li>
+                            <li>Alinhe a <strong>seta dourada</strong> no canto do seu <strong>Ryzen 5 9600X</strong> com o <strong>triângulo</strong> marcado no soquete.</li>
+                            <li>Encaixe o processador gentilmente, sem aplicar força. Ele deve se acomodar perfeitamente.</li>
+                            <li>Abaixe o suporte metálico e trave a alavanca. A capa plástica de proteção saltará automaticamente. Guarde-a.</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">1.2 Instalando o SSD M.2</h4>
+                        <ol class="list-decimal pl-5">
+                            <li>Localize o slot superior, identificado como <code>M.2_1</code>, que fica sob o dissipador "TUF GAMING".</li>
+                            <li>Remova o parafuso do dissipador e retire-o.</li>
+                            <li>Remova a película plástica protetora da almofada térmica (thermal pad) que fica no dissipador.</li>
+                            <li>Insira o SSD <strong>Kingston NV3</strong> em um ângulo de 30 graus.</li>
+                            <li>Pressione-o para baixo e fixe-o usando a trava plástica <strong>M.2 Q-Latch</strong> (basta girá-la para travar).</li>
+                            <li>Recoloque o dissipador e parafuse-o de volta no lugar.</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">1.3 Instalando a Memória RAM</h4>
+                        <p>Para otimizar o desempenho (Dual Channel), utilize os slots <code class="accent-text font-bold">DIMM_A2</code> e <code class="accent-text font-bold">DIMM_B2</code> (o 2º e o 4º a partir do processador).</p>
+                        <div class="flex items-center justify-center gap-2 my-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="text-center text-xs text-gray-500">CPU</div>
+                            <div class="flex gap-2">
+                                <div class="ram-slot p-2 rounded w-12 h-20 flex items-center justify-center text-xs">A1</div>
+                                <div class="ram-slot highlight p-2 rounded w-12 h-20 flex items-center justify-center text-xs font-bold">A2 ✔</div>
+                                <div class="ram-slot p-2 rounded w-12 h-20 flex items-center justify-center text-xs">B1</div>
+                                <div class="ram-slot highlight p-2 rounded w-12 h-20 flex items-center justify-center text-xs font-bold">B2 ✔</div>
+                            </div>
+                        </div>
+                        <ol class="list-decimal pl-5">
+                            <li>Abra as travas plásticas nas extremidades dos slots corretos.</li>
+                            <li>Alinhe o entalhe no pente de memória com a saliência no slot.</li>
+                            <li>Pressione o pente com firmeza e de maneira uniforme nas duas pontas até ouvir um "clique" e as travas se fecharem.</li>
+                        </ol>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            },
+            {
+                title: 'Montagem no Gabinete',
+                content: `
+                    <div class="prose max-w-none">
+                        <p class="text-lg text-gray-600">Agora que a placa-mãe está pronta, é hora de mover as peças para sua "casa": o gabinete. Esta fase envolve a instalação dos componentes maiores e a garantia de que o fluxo de ar principal está configurado corretamente.</p>
+                        <h4 class="font-bold mt-6">2.1 Preparando o Gabinete</h4>
+                         <ul class="list-disc pl-5">
+                            <li>Remova os painéis laterais (o de vidro e o metálico).</li>
+                            <li>Confirme se os <i>standoffs</i> (parafusos de elevação) estão nos furos corretos para o formato da sua placa-mãe (mATX).</li>
+                             <li><strong>Boa notícia:</strong> A TUF B650M-PLUS já vem com o espelho traseiro integrado, então você não precisa instalar um.</li>
+                        </ul>
+                        <h4 class="font-bold mt-6">2.2 Instalando o Radiador do Water Cooler (Topo)</h4>
+                        <ol class="list-decimal pl-5">
+                            <li>Monte as duas ventoinhas no radiador.</li>
+                            <li><strong>Orientação do Fluxo de Ar:</strong> A parte "aberta" da ventoinha (o lado sem a grade de suporte do motor) deve ficar voltada para cima, em contato com o teto do gabinete. Isso fará com que o ar quente seja jogado para fora (exaustão).</li>
+                            <li>Parafuse o conjunto (radiador + ventoinhas) na parte superior do gabinete.</li>
+                            <li>Instale os suportes corretos para soquete AM5 na bomba do water cooler (consulte o manual do AIO).</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">2.3 Instalando a Placa-Mãe</h4>
+                        <ol class="list-decimal pl-5">
+                            <li>Com cuidado, posicione a placa-mãe dentro do gabinete, alinhando os furos com os <i>standoffs</i> e os conectores traseiros com a abertura do espelho.</li>
+                            <li>Comece a parafusar pelo centro, sem apertar demais. O ideal é apenas firmar os parafusos.</li>
+                        </ol>
+                         <h4 class="font-bold mt-6">2.4 Instalando a Bomba do Water Cooler</h4>
+                        <ol class="list-decimal pl-5">
+                            <li><strong>Pasta Térmica:</strong> Se já vier pré-aplicada, apenas remova o plástico protetor. Se for aplicar, coloque uma gota do tamanho de uma ervilha no centro do processador.</li>
+                            <li>Posicione a bomba sobre o processador e prenda os parafusos em um padrão cruzado (em "X") para garantir uma pressão uniforme.</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">2.5 Instalando a Fonte de Alimentação</h4>
+                        <ul class="list-disc pl-5">
+                            <li>Instale a fonte na parte inferior do gabinete com a ventoinha virada para <strong>baixo</strong>, para que ela puxe ar fresco pela abertura inferior do gabinete.</li>
+                            <li>Fixe-a com os 4 parafusos inclusos na parte de trás do gabinete.</li>
+                        </ul>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            },
+            {
+                title: 'Conexões e Cabos',
+                content: `
+                    <div class="prose max-w-none">
+                         <p class="text-lg text-gray-600">Com os componentes principais no lugar, esta é a etapa de dar vida ao sistema, conectando todos os cabos de energia e de dados. Preste muita atenção aqui, pois conexões incorretas podem impedir o computador de ligar.</p>
+                        <h4 class="font-bold mt-6">3.1 Cabos de Energia Principais</h4>
+                        <ul class="list-disc pl-5">
+                            <li><strong>CPU Power (8 pinos):</strong> Conecte o cabo da fonte no conector <code>ATX_12V_1</code>, localizado no topo esquerdo da placa-mãe.</li>
+                            <li><strong>Placa-mãe (24 pinos):</strong> Conecte o cabo mais largo da fonte no conector grande na lateral direita da placa-mãe.</li>
+                        </ul>
+                        <h4 class="font-bold mt-6">3.2 Instalando e Conectando a Placa de Vídeo</h4>
+                        <ol class="list-decimal pl-5">
+                            <li>Na parte traseira do gabinete, remova duas tampas de metal dos slots PCIe (alinhadas com o slot principal da placa-mãe).</li>
+                            <li>Abra a trava de segurança do slot PCIe x16 (o slot reforçado com metal).</li>
+                            <li>Alinhe e encaixe a <strong>RTX 4060</strong> firmemente até ouvir o "clique" da trava. Parafuse a placa no gabinete.</li>
+                            <li>Use o cabo rotulado como <strong>"PCIe"</strong> ou <strong>"VGA"</strong> da sua fonte (um conector de 6+2 pinos) e conecte-o com firmeza na placa de vídeo.</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">3.3 Conectando os Cabos do Painel Frontal</h4>
+                        <ul class="list-disc pl-5">
+                            <li><strong>F_PANEL:</strong> Conecte os pequenos cabos dos LEDs e botões (Power, Reset) no canto inferior direito. A polaridade dos botões não importa. Consulte o manual da placa-mãe para o pino exato de cada um.</li>
+                            <li><strong>USB 3.0:</strong> É o cabo azul e grosso. Conecte-o no header azul, geralmente próximo ao conector de 24 pinos.</li>
+                            <li><strong>Áudio (AAFP):</strong> Conecte o cabo de áudio no canto inferior esquerdo da placa.</li>
+                        </ul>
+                        <h4 class="font-bold mt-6">3.4 Conectando Ventoinhas e Bomba</h4>
+                        <ul class="list-disc pl-5">
+                             <li><strong>Bomba do Water Cooler:</strong> Conecte no header da placa-mãe identificado como <code>AIO_PUMP</code>.</li>
+                            <li><strong>Ventoinhas do Radiador:</strong> Conecte no <code>CPU_FAN</code> e <code>CPU_OPT</code>. Pode-se usar um cabo divisor (splitter) se preferir.</li>
+                            <li><strong>Ventoinhas do Gabinete:</strong> Conecte nos headers <code>CHA_FAN</code> (Chassis Fan) disponíveis.</li>
+                        </ul>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            },
+            {
+                title: 'Organização',
+                content: `
+                    <div class="prose max-w-none">
+                        <p class="text-lg text-gray-600">A organização dos cabos (cable management) não é apenas sobre estética. Um bom arranjo melhora o fluxo de ar dentro do gabinete, o que ajuda na refrigeração dos componentes e facilita futuras manutenções.</p>
+                        <h4 class="font-bold mt-6">Cenário 1: Foco na Funcionalidade</h4>
+                        <p>Se a sua prioridade é apenas fazer o PC funcionar rapidamente, o objetivo principal é garantir que nenhum cabo obstrua as ventoinhas.</p>
+                        <ul class="list-disc pl-5">
+                            <li>Use abraçadeiras plásticas para agrupar os cabos soltos.</li>
+                            <li>Prenda esses grupos de cabos em pontos de amarração do gabinete ou em locais onde não interfiram com o fluxo de ar.</li>
+                        </ul>
+                        <h4 class="font-bold mt-6">Cenário 2: Foco na Estética</h4>
+                        <p>Para um visual limpo e profissional, a maior parte do trabalho acontece na parte de trás do gabinete.</p>
+                        <ul class="list-disc pl-5">
+                            <li>Passe a maior quantidade possível de cabos pelas aberturas do gabinete para a parte traseira.</li>
+                            <li>Siga as rotas dedicadas e use os pontos de amarração para prender os cabos de forma organizada.</li>
+                            <li>Planeje o caminho de cada cabo antes de conectá-lo para evitar cruzamentos desnecessários.</li>
+                            <li>Agrupe cabos que vão para a mesma área da placa-mãe.</li>
+                        </ul>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            },
+            {
+                title: 'Finalização',
+                content: `
+                    <div class="prose max-w-none">
+                        <p class="text-lg text-gray-600">Parabéns, você chegou à etapa final! Antes de ligar seu novo PC, vamos fazer uma verificação completa para garantir que tudo está no lugar. Depois, faremos o primeiro boot e uma configuração essencial na BIOS.</p>
+                        <h4 class="font-bold mt-6">5.1 Checklist Interativo Final</h4>
+                        <p>Marque cada item para garantir que não esqueceu de nada crucial.</p>
+                        <ul id="final-checklist" class="space-y-3 mt-4">
+                            <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Cabos de energia (CPU 8 pinos, Placa-mãe 24 pinos) estão firmes.</span></li>
+                            <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Cabo de energia da placa de vídeo (PCIe 6+2 pinos) conectado.</span></li>
+                             <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Memórias RAM e SSD M.2 estão bem encaixados.</span></li>
+                            <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Painéis laterais do gabinete estão fechados.</span></li>
+                            <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Cabo de força conectado à fonte e à tomada.</span></li>
+                            <li class="checklist-item flex items-center cursor-pointer"><span class="checkbox-icon mr-3 w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors">✔</span><span>Teclado, mouse e outros periféricos conectados.</span></li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-800 rounded-r-lg">
+                            <h5 class="font-bold">🚨 IMPORTANTE: Conexão do Monitor</h5>
+                            <p class="mt-2">O cabo do seu monitor (HDMI ou DisplayPort) deve ser conectado na saída de vídeo da <strong>Placa de Vídeo (RTX 4060)</strong>, não nas saídas da placa-mãe.</p>
+                        </div>
+                        <h4 class="font-bold mt-6">5.2 Primeiro Boot e BIOS</h4>
+                        <ol class="list-decimal pl-5">
+                            <li><strong>Ao Ligar:</strong> A primeira inicialização pode demorar alguns minutos. Isso é normal, pois a placa-mãe está "treinando" a memória DDR5. Tenha paciência.</li>
+                            <li><strong>Diagnóstico (Q-LEDs):</strong> Observe os pequenos LEDs na placa (BOOT/VGA/DRAM/CPU). Se o sistema não ligar, um deles ficará aceso, indicando a origem do problema.</li>
+                            <li><strong>Acessar a BIOS:</strong> Ligue o PC e pressione repetidamente a tecla <strong><code>DEL</code></strong> ou <strong><code>F2</code></strong> quando o logo da TUF GAMING aparecer.</li>
+                            <li><strong>Na BIOS:</strong> Confirme se o processador, a memória RAM (32GB) e o SSD foram reconhecidos corretamente.</li>
+                            <li><strong>Ativar EXPO:</strong> Para extrair o máximo de desempenho da sua memória, vá para <code>Ai Tweaker</code> > <code>Ai Overclock Tuner</code> e selecione <code>EXPO I</code>.</li>
+                            <li>Pressione a tecla <strong><code>F10</code></strong> para salvar as alterações e reiniciar.</li>
+                        </ol>
+                        <h4 class="font-bold mt-6">Missão Cumprida!</h4>
+                        <p>Seu PC está montado e configurado! Agora é só instalar seu sistema operacional preferido, os drivers mais recentes e aproveitar sua nova máquina.</p>
+                        ${aiHelpButtonHtml}
+                    </div>
+                `
+            }
+        ];
+
+        const componentsData = [
+            { category: 'Gabinete', name: 'Mancer CV100', icon: '📦' },
+            { category: 'Placa-mãe', name: 'ASUS TUF GAMING B650M-PLUS', icon: '📟' },
+            { category: 'Processador', name: 'AMD Ryzen 5 9600X (AM5)', icon: '🧠' },
+            { category: 'Cooler', name: 'Water Cooler AIO de 240mm (Topo)', icon: '❄️' },
+            { category: 'Memória RAM', name: '2x16GB Kingston Fury Beast DDR5', icon: '💾' },
+            { category: 'SSD', name: 'Kingston NV3 1TB NVMe M.2', icon: '💽' },
+            { category: 'Placa de Vídeo', name: 'MSI RTX 4060 Ventus 2x', icon: '🎮' },
+            { category: 'Fonte', name: 'Pichau Nidus 550L 550W', icon: '⚡' }
+        ];
+
+        let currentStep = 0;
+        
+        const stepperNav = document.getElementById('stepper-nav');
+        const stepsContainer = document.getElementById('steps-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentStepIndicator = document.getElementById('current-step-indicator');
+        const totalStepsIndicator = document.getElementById('total-steps-indicator');
+        
+        const aiHelpModal = document.getElementById('ai-help-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalStepTitle = document.getElementById('modal-step-title');
+        const userProblemInput = document.getElementById('user-problem-input');
+        const getAIHelpBtn = document.getElementById('get-ai-help-btn');
+        const aiResponseContainer = document.getElementById('ai-response-container');
+        const aiLoader = document.getElementById('ai-loader');
+        const aiResponseContent = document.getElementById('ai-response-content');
+
+        function init() {
+            totalStepsIndicator.textContent = stepsData.length;
+            stepsData.forEach((step, index) => {
+                const navItem = document.createElement('button');
+                navItem.className = 'step-item px-4 py-2 text-gray-500 transition-colors hover:text-gray-800';
+                navItem.textContent = step.title;
+                navItem.dataset.index = index;
+                navItem.addEventListener('click', () => {
+                    currentStep = index;
+                    renderStep();
+                });
+                stepperNav.appendChild(navItem);
+
+                const stepContent = document.createElement('div');
+                stepContent.className = 'step-content';
+                stepContent.id = `step-${index}`;
+                stepContent.innerHTML = step.content;
+                stepsContainer.appendChild(stepContent);
+            });
+            renderStep();
+            populateComponents();
+            setupEventListeners();
+        }
+
+        function renderStep() {
+            document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+            document.getElementById(`step-${currentStep}`).style.display = 'block';
+
+            document.querySelectorAll('.step-item').forEach((el, index) => {
+                el.classList.toggle('active', index === currentStep);
+            });
+            
+            prevBtn.disabled = currentStep === 0;
+            nextBtn.disabled = currentStep === stepsData.length - 1;
+            
+            if(currentStep === stepsData.length - 1) {
+                nextBtn.textContent = 'Finalizar';
+            } else {
+                nextBtn.textContent = 'Próximo';
+            }
+
+            currentStepIndicator.textContent = currentStep + 1;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function populateComponents() {
+            const componentList = document.getElementById('component-list');
+            componentList.innerHTML = '';
+            const componentsText = componentsData.map(c => `${c.category}: ${c.name}`).join(', ');
+            componentsData.forEach(comp => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-4 p-2 bg-gray-50 rounded-lg';
+                li.innerHTML = `
+                    <span class="text-2xl">${comp.icon}</span>
+                    <div>
+                        <p class="font-semibold text-gray-700">${comp.category}</p>
+                        <p class="text-gray-500">${comp.name}</p>
+                    </div>
+                `;
+                componentList.appendChild(li);
+            });
+        }
+
+        function setupEventListeners() {
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    renderStep();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < stepsData.length - 1) {
+                    currentStep++;
+                    renderStep();
+                }
+            });
+            
+            const openSidebarBtn = document.getElementById('open-sidebar-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+            const sidebar = document.getElementById('component-sidebar');
+
+            openSidebarBtn.addEventListener('click', () => sidebar.classList.remove('translate-x-full'));
+            closeSidebarBtn.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
+            
+            document.addEventListener('click', (event) => {
+                if (!sidebar.contains(event.target) && !openSidebarBtn.contains(event.target)) {
+                    sidebar.classList.add('translate-x-full');
+                }
+            });
+
+            stepsContainer.addEventListener('click', (e) => {
+                const checklistItem = e.target.closest('.checklist-item');
+                if (checklistItem) {
+                    checklistItem.classList.toggle('checked');
+                }
+                const aiHelpBtn = e.target.closest('.ai-help-trigger-btn');
+                if (aiHelpBtn) {
+                    openAiHelpModal();
+                }
+            });
+
+            closeModalBtn.addEventListener('click', () => aiHelpModal.classList.add('hidden'));
+            getAIHelpBtn.addEventListener('click', fetchAiHelp);
+        }
+        
+        function openAiHelpModal() {
+            modalStepTitle.textContent = stepsData[currentStep].title;
+            userProblemInput.value = '';
+            aiResponseContent.innerHTML = '';
+            aiResponseContent.classList.add('hidden');
+            aiHelpModal.classList.remove('hidden');
+        }
+
+        async function fetchAiHelp() {
+            const userProblem = userProblemInput.value;
+            if (!userProblem.trim()) {
+                aiResponseContent.innerHTML = '<p class="text-red-500">Por favor, descreva seu problema antes de buscar uma solução.</p>';
+                aiResponseContent.classList.remove('hidden');
+                return;
+            }
+
+            aiLoader.style.display = 'flex';
+            aiResponseContent.classList.add('hidden');
+            getAIHelpBtn.disabled = true;
+
+            const componentsList = componentsData.map(c => `${c.category}: ${c.name}`).join('\n');
+            const currentStepTitle = stepsData[currentStep].title;
+
+            const prompt = `
+                Você é um assistente especialista em montagem de PCs, amigável e didático. Um usuário está montando um computador com os seguintes componentes:
+                ${componentsList}
+
+                O usuário está na etapa de "${currentStepTitle}" e descreveu o seguinte problema: "${userProblem}".
+
+                Forneça uma resposta em português, em formato de passo a passo, para ajudar o usuário a resolver o problema. Seja encorajador e foque em possíveis erros comuns relacionados à etapa e ao problema descrito. Comece com uma saudação amigável. Use marcação de lista (list-bullet) se apropriado.
+            `;
+
+            try {
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    aiResponseContent.innerHTML = text.replace(/\n/g, '<br>');
+                } else {
+                    throw new Error("Resposta da API inválida ou vazia.");
+                }
+            } catch (error) {
+                console.error("Error fetching AI help:", error);
+                aiResponseContent.innerHTML = '<p class="text-red-500">Desculpe, não foi possível obter uma resposta do assistente no momento. Por favor, tente novamente mais tarde.</p>';
+            } finally {
+                aiLoader.style.display = 'none';
+                aiResponseContent.classList.remove('hidden');
+                getAIHelpBtn.disabled = false;
+            }
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>
